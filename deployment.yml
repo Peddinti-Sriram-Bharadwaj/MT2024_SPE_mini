@@ -1,0 +1,31 @@
+---
+- name: Deploy Scientific Calculator Locally
+  hosts: local
+  become: false  # No need for sudo on local machine usually
+  vars:
+    docker_image_name: your-docker-username/your-image-name  # Same as in Jenkinsfile
+    docker_container_name: scientific-calculator
+  tasks:
+    - name: Pull Docker image (if needed)
+      community.docker.docker_image:
+        name: "{{ docker_image_name }}:latest"
+        source: pull
+        state: present
+
+    - name: Run Docker container
+      community.docker.docker_container:
+        name: "{{ docker_container_name }}"
+        image: "{{ docker_image_name }}:latest"
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:80" # or any relevant ports. replace with the application port
+
+    - name: check if container is running
+      community.docker.docker_container_info:
+        name: "{{ docker_container_name }}"
+      register: container_info
+
+    - name: display container info
+      debug:
+        var: container_info.container.State.Running

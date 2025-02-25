@@ -43,7 +43,10 @@ pipeline {
                     docker.image('docker:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock -u root') {
                         sh 'docker --version'
                         sh 'docker build -t ${IMAGE_NAME}:latest .'
-                        withCredentials([string(credentialsId: 'docker-hub-password', variable: 'REGISTRY_PASSWORD')]) {
+                        withCredentials([
+                           string(credentialsId: 'docker-hub-password', variable: 'REGISTRY_PASSWORD'),
+                           string(credentialsId: 'docker-hub-user', variable: 'REGISTRY_USER')
+                        ]) {
                             sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}"
                         }
                         sh 'docker push ${IMAGE_NAME}:latest'
@@ -51,5 +54,22 @@ pipeline {
                 }
             }
         }
+         stage('Deploy') {
+            agent any
+            steps {
+                script {
+                    withCredentials([
+                       string(credentialsId: 'docker-hub-password', variable: 'DOCKER_REGISTRY_PASSWORD'),
+                       string(credentialsId: 'docker-hub-user', variable: 'DOCKER_REGISTRY_USER')
+                    ]){
+                        sh 'ansible-galaxy collection install community.docker'
+                        sh '''
+                            ansible-playbook -i inventory.ini deployment.yml
+                        '''
+                    }
+                }
+            }
+        }
+
     }
 }
