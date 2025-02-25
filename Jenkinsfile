@@ -6,6 +6,7 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.9'
+                    reuseNode true
                 }
             }
             steps {
@@ -20,6 +21,7 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.9'
+                    reuseNode true
                 }
             }
             steps {
@@ -36,6 +38,7 @@ pipeline {
                 docker {
                     image 'docker:latest'
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    reuseNode true
                 }
             }
             environment {
