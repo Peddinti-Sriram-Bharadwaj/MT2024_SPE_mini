@@ -11,7 +11,7 @@ pipeline {
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
                         sh 'pip install -e .[test]'
-                        sh 'python setup.py test'
+                        sh 'pytest'
                     }
                 }
             }
