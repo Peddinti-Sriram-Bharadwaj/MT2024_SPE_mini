@@ -10,10 +10,12 @@ pipeline {
                 }
             }
             steps {
-                sh 'python --version'
-                sh 'pip install --upgrade pip'
-                sh 'pip install -e .[test]'
-                sh 'python setup.py test'
+                 container('python:3.9') {
+                    sh 'python --version'
+                    sh 'pip install --upgrade pip'
+                    sh 'pip install -e .[test]'
+                    sh 'python setup.py test'
+                }
             }
         }
 
@@ -25,11 +27,13 @@ pipeline {
                 }
             }
             steps {
-                sh 'python --version'
-                sh 'pip install --upgrade pip'
-                sh 'pip install -e .'
-                sh 'python setup.py sdist bdist_wheel'
-                archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                container('python:3.9'){
+                    sh 'python --version'
+                    sh 'pip install --upgrade pip'
+                    sh 'pip install -e .'
+                    sh 'python setup.py sdist bdist_wheel'
+                    archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                }
             }
         }
 
@@ -48,10 +52,12 @@ pipeline {
                 IMAGE_NAME = "${env.DOCKER_IMAGE_NAME}"
             }
             steps {
-                sh 'docker --version'
-                sh 'docker build -t ${IMAGE_NAME}:latest .'
-                sh 'docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}'
-                sh 'docker push ${IMAGE_NAME}:latest'
+                container('docker:latest'){
+                    sh 'docker --version'
+                    sh 'docker build -t ${IMAGE_NAME}:latest .'
+                    sh 'docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}'
+                    sh 'docker push ${IMAGE_NAME}:latest'
+                }
             }
         }
     }
