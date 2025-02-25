@@ -3,12 +3,12 @@
   hosts: local
   become: false  # No need for sudo on local machine usually
   vars:
-    docker_image_name: your-docker-username/your-image-name  # Same as in Jenkinsfile
+    docker_image_name: sriram9217/scientific-calculator 
     docker_container_name: scientific-calculator
   tasks:
     - name: Pull Docker image (if needed)
       community.docker.docker_image:
-        name: "{{ docker_image_name }}:latest"
+        name: "{{ docker_image_name }}:latest" # Corrected to use the variable
         source: pull
         state: present
 
