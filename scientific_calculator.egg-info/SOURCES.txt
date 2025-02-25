@@ -1,0 +1,11 @@
+setup.py
+./calc/__init__.py
+./calc/calc.py
+./test/__init__.py
+./test/test_calc.py
+scientific_calculator.egg-info/PKG-INFO
+scientific_calculator.egg-info/SOURCES.txt
+scientific_calculator.egg-info/dependency_links.txt
+scientific_calculator.egg-info/requires.txt
+scientific_calculator.egg-info/top_level.txt
+test/test_calc.py
