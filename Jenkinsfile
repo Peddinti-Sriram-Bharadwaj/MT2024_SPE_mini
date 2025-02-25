@@ -1,44 +1,63 @@
 pipeline {
-    agent any
-
+    agent {
+        label 'built-in'
+    }
+    
     stages {
         stage('Test') {
-            steps {
-                script {
-                    docker.image('python:3.9').inside {
-                        sh 'python --version'
-                        sh 'pip install --upgrade pip'
-                        sh 'pip install -e .[test]'
-                        sh 'python setup.py test'
-                    }
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                    args '-u root'
                 }
+            }
+            steps {
+                 sh 'python --version'
+                 sh 'pip install --upgrade pip'
+                 sh 'pip install -e .[test]'
+                 sh 'python setup.py test'
             }
         }
 
         stage('Build') {
-            steps {
-                script {
-                    docker.image('python:3.9').inside {
-                        sh 'python --version'
-                        sh 'pip install --upgrade pip'
-                        sh 'pip install -e .'
-                        sh 'python setup.py sdist bdist_wheel'
-                        archiveArtifacts artifacts: 'dist/*', fingerprint: true
-                    }
+            agent {
+                docker {
+                    image 'python:3.9'
+                    reuseNode true
+                    args '-u root'
                 }
+            }
+            steps {
+                 sh 'python --version'
+                 sh 'pip install --upgrade pip'
+                 sh 'pip install -e .'
+                 sh 'python setup.py sdist bdist_wheel'
+                 archiveArtifacts artifacts: 'dist/*', fingerprint: true
             }
         }
 
         stage('Docker Build and Push') {
-            steps {
-                script {
-                    docker.image('docker:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                        sh 'docker --version'
-                        sh 'docker build -t ${DOCKER_IMAGE_NAME}:latest .'
-                        sh 'docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${DOCKER_REGISTRY}'
-                        sh 'docker push ${DOCKER_IMAGE_NAME}:latest'
-                    }
+            agent {
+                docker {
+                    image 'docker:latest'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                    reuseNode true
                 }
+            }
+            environment {
+                REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
+                REGISTRY_USER = "${env.DOCKER_REGISTRY_USER}"
+                REGISTRY_PASSWORD = "${env.DOCKER_REGISTRY_PASSWORD}"
+                IMAGE_NAME = "${env.DOCKER_IMAGE_NAME}"
+            }
+            steps {
+                sh 'docker --version'
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
+                withCredentials([string(credentialsId: 'docker-hub-password', variable: 'REGISTRY_PASSWORD')]) {
+                    sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}"
+                }
+                sh 'docker push ${IMAGE_NAME}:latest'
             }
         }
     }
