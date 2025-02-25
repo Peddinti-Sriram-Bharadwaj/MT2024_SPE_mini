@@ -2,7 +2,7 @@ pipeline {
     agent {
         label 'built-in'
     }
-    
+
     stages {
         stage('Test') {
             steps {
@@ -34,8 +34,8 @@ pipeline {
         stage('Docker Build and Push') {
             environment {
                 REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
-                REGISTRY_USER = "${env.DOCKER_REGISTRY_USER}"
-                REGISTRY_PASSWORD = "${env.DOCKER_REGISTRY_PASSWORD}"
+                //REGISTRY_USER = "${env.DOCKER_REGISTRY_USER}" remove this variable as it is not needed
+                //REGISTRY_PASSWORD = "${env.DOCKER_REGISTRY_PASSWORD}" remove this variable as it is not needed
                 IMAGE_NAME = "${env.DOCKER_IMAGE_NAME}"
             }
             steps {
@@ -44,8 +44,7 @@ pipeline {
                         sh 'docker --version'
                         sh 'docker build -t ${IMAGE_NAME}:latest .'
                         withCredentials([
-                           string(credentialsId: 'docker-hub-password', variable: 'REGISTRY_PASSWORD'),
-                           string(credentialsId: 'docker-hub-user', variable: 'REGISTRY_USER')
+                           usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'REGISTRY_PASSWORD', usernameVariable: 'REGISTRY_USER')
                         ]) {
                             sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}"
                         }
@@ -59,8 +58,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([
-                       string(credentialsId: 'docker-hub-password', variable: 'DOCKER_REGISTRY_PASSWORD'),
-                       string(credentialsId: 'docker-hub-user', variable: 'DOCKER_REGISTRY_USER')
+                       usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'DOCKER_REGISTRY_PASSWORD', usernameVariable: 'DOCKER_REGISTRY_USER')
                     ]){
                         sh 'ansible-galaxy collection install community.docker'
                         sh '''
