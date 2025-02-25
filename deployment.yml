@@ -19,7 +19,7 @@
         state: started
         restart_policy: always
         ports:
-          - "8080:80" # or any relevant ports. replace with the application port
+          - "8081:80" # or any relevant ports. replace with the application port
 
     - name: check if container is running
       community.docker.docker_container_info:
