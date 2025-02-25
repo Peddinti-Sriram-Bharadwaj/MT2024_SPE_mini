@@ -1,33 +1,35 @@
 pipeline {
-    agent any
+    agent none
 
     stages {
         stage('Test') {
             agent {
                 docker {
                     image 'python:3.9'
+                    reuseNode true
                 }
             }
             steps {
                 sh 'python --version'
                 sh 'pip install --upgrade pip'
-                sh 'pip install -e .[test] || pip install .[test]'  // Fallback
-                sh 'pytest'  // Modern testing instead of setup.py test
+                sh 'pip install -e .[test]'
+                sh 'python setup.py test'
             }
         }
 
         stage('Build') {
-            agent {
+             agent {
                 docker {
                     image 'python:3.9'
+                    reuseNode true
                 }
             }
             steps {
-                sh 'python --version'
-                sh 'pip install --upgrade pip'
-                sh 'pip install -e . || pip install .'  // Fallback
-                sh 'python setup.py sdist bdist_wheel'
-                archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                 sh 'python --version'
+                 sh 'pip install --upgrade pip'
+                 sh 'pip install -e .'
+                 sh 'python setup.py sdist bdist_wheel'
+                 archiveArtifacts artifacts: 'dist/*', fingerprint: true
             }
         }
 
@@ -36,18 +38,21 @@ pipeline {
                 docker {
                     image 'docker:latest'
                     args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    reuseNode true
                 }
             }
             environment {
                 REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
-                REGISTRY_USER = "${env.DOCKER_REGISTRY_USER ?: 'default-user'}"
-                REGISTRY_PASSWORD = "${env.DOCKER_REGISTRY_PASSWORD ?: 'default-pass'}"
-                IMAGE_NAME = "${env.DOCKER_IMAGE_NAME ?: 'my-image'}"
+                REGISTRY_USER = "${env.DOCKER_REGISTRY_USER}"
+                REGISTRY_PASSWORD = "${env.DOCKER_REGISTRY_PASSWORD}"
+                IMAGE_NAME = "${env.DOCKER_IMAGE_NAME}"
             }
             steps {
                 sh 'docker --version'
                 sh 'docker build -t ${IMAGE_NAME}:latest .'
-                sh 'echo ${REGISTRY_PASSWORD} | docker login -u ${REGISTRY_USER} --password-stdin ${REGISTRY}'
+                 withCredentials([string(credentialsId: 'docker-hub-password', variable: 'REGISTRY_PASSWORD')]) {
+                    sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}"
+                }
                 sh 'docker push ${IMAGE_NAME}:latest'
             }
         }
