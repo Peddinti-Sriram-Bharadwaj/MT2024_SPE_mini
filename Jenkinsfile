@@ -1,6 +1,5 @@
 pipeline {
-    agent any
-
+    agent none
     stages {
         stage('Test') {
             agent {
@@ -10,30 +9,26 @@ pipeline {
                 }
             }
             steps {
-                 container('python:3.9') {
-                    sh 'python --version'
-                    sh 'pip install --upgrade pip'
-                    sh 'pip install -e .[test]'
-                    sh 'python setup.py test'
-                }
+                sh 'python --version'
+                sh 'pip install --upgrade pip'
+                sh 'pip install -e .[test]'
+                sh 'python setup.py test'
             }
         }
 
         stage('Build') {
-            agent {
+             agent {
                 docker {
                     image 'python:3.9'
                     reuseNode true
                 }
             }
             steps {
-                container('python:3.9'){
-                    sh 'python --version'
-                    sh 'pip install --upgrade pip'
-                    sh 'pip install -e .'
-                    sh 'python setup.py sdist bdist_wheel'
-                    archiveArtifacts artifacts: 'dist/*', fingerprint: true
-                }
+                 sh 'python --version'
+                 sh 'pip install --upgrade pip'
+                 sh 'pip install -e .'
+                 sh 'python setup.py sdist bdist_wheel'
+                 archiveArtifacts artifacts: 'dist/*', fingerprint: true
             }
         }
 
@@ -52,12 +47,10 @@ pipeline {
                 IMAGE_NAME = "${env.DOCKER_IMAGE_NAME}"
             }
             steps {
-                container('docker:latest'){
-                    sh 'docker --version'
-                    sh 'docker build -t ${IMAGE_NAME}:latest .'
-                    sh 'docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}'
-                    sh 'docker push ${IMAGE_NAME}:latest'
-                }
+                sh 'docker --version'
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
+                sh 'docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}'
+                sh 'docker push ${IMAGE_NAME}:latest'
             }
         }
     }
