@@ -1,6 +1,12 @@
 pipeline {
     agent none
     stages {
+        stage('Prepare') {
+            steps {
+                sh 'docker pull python:3.13'
+            }
+        }
+
         stage('Test') {
             agent {
                 docker {
