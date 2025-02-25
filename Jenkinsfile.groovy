@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'built-in'
+    }
 
     stages {
         stage('Test') {
@@ -11,10 +13,10 @@ pipeline {
                 }
             }
             steps {
-                 sh 'python --version'
-                 sh 'pip install --upgrade pip'
-                 sh 'pip install -e .[test]'
-                 sh 'python setup.py test'
+                sh 'python --version'
+                sh 'pip install --upgrade pip'
+                sh 'pip install -e .[test]'
+                sh 'python setup.py test'
             }
         }
 
@@ -27,11 +29,11 @@ pipeline {
                 }
             }
             steps {
-                 sh 'python --version'
-                 sh 'pip install --upgrade pip'
-                 sh 'pip install -e .'
-                 sh 'python setup.py sdist bdist_wheel'
-                 archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                sh 'python --version'
+                sh 'pip install --upgrade pip'
+                sh 'pip install -e .'
+                sh 'python setup.py sdist bdist_wheel'
+                archiveArtifacts artifacts: 'dist/*', fingerprint: true
             }
         }
 
