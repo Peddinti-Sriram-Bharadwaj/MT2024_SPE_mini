@@ -61,9 +61,6 @@ pipeline {
         }
 
          stage('Deploy') {
-             when {
-                 branch 'main' //Only execute in main branch
-             }
             agent any
             steps {
                 script {

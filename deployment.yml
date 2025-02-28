@@ -8,7 +8,7 @@
   tasks:
     - name: Pull Docker image (if needed)
       community.docker.docker_image:
-        name: "{{ docker_image_name }}:latest" # Corrected to use the variable
+        name: "{{ docker_image_name }}:latest" 
         source: pull
         state: present
 
@@ -19,7 +19,7 @@
         state: started
         restart_policy: always
         ports:
-          - "8081:80" # or any relevant ports. replace with the application port
+          - "8081:80" 
 
     - name: check if container is running
       community.docker.docker_container_info:

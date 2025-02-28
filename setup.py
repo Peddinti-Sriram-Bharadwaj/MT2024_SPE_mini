@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),  # Automatically find all packages (calc and tests)
     install_requires=[],  # No external package required
     # Remove tests_require and test_suite
-    author='Your Name',  # Add your name
+    author='Sriram',  # Add your name
     author_email='sriram9217@example.com',  # Add your email
     description='A simple scientific calculator',  # Add description
     # Add setup for tests
