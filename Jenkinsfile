@@ -37,9 +37,6 @@ pipeline {
         }
 
         stage('Docker Build and Push') {
-            when {
-                branch 'main' //Only execute in main branch
-            }
             environment {
                 //define environment variables only if needed.
                 IMAGE_TAG = "latest" //Define the tag
