@@ -17,4 +17,4 @@ ENV NAME Scientific Calculator
 EXPOSE 80
 
 # Run app.py when the container launches
-CMD ["python", "calc/calc.py"]
+CMD ["/bin/bash"]
