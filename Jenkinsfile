@@ -2,22 +2,6 @@ pipeline {
     agent {
         label 'built-in'
     }
-
-    // Add the triggers block at the top level
-    triggers {
-        GenericTrigger(
-            genericVariables: [
-                [key: 'GIT_REF', value: '$.ref'] // Extract the branch name from the JSON payload
-            ],
-            causeString: 'Triggered by push to GitHub', // Optional description of the trigger
-            token: '115bad4bed1ee7389373db6cbe2e6d9691', // Your Jenkins API token (use a secret or credential binding)
-            regexpFilterText: '$GIT_REF', 
-            regexpFilterExpression: 'refs/heads/main', // Only trigger on pushes to the 'main' branch
-            printPostContent: true,
-            printContributedVariables: true
-        )
-    }
-
     environment {
         // Define environment variables here, making them accessible throughout the pipeline
         REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
