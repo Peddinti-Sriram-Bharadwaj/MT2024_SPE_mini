@@ -21,6 +21,6 @@ RUN pip install -e .
 EXPOSE 80
 
 # Run the calculator application
-CMD ["python", "-m", "calc"]
+CMD ["python3", "calc/calc.py"]
 
 #dummy5
