@@ -6,6 +6,7 @@ pipeline {
         // Define environment variables here, making them accessible throughout the pipeline
         REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
         IMAGE_NAME = "sriram9217/scientific-calculator"
+        IMAGE_TAG = "latest"
     }
 
     stages {
