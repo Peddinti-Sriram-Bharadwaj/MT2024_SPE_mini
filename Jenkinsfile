@@ -67,7 +67,6 @@ pipeline {
                     ]){
                         sh 'docker --version'
                         sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${REGISTRY}"
-                        sh 'pip3 install requests'
                         sh 'ansible-galaxy collection install community.docker'
                         sh 'ansible-playbook -i inventory.ini deployment.yml'
                     }
