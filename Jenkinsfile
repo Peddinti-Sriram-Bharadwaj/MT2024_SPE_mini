@@ -14,10 +14,11 @@ pipeline {
             steps {
                 script {
                     docker.image('python:3.9').inside('-u root') {
+                        sh "rm -rf build/"
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
                         sh 'pip install -e .[test]'
-                        sh 'pytest'
+                        sh 'pytest --ignore=build/'
                     }
                 }
             }
