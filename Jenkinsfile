@@ -10,19 +10,26 @@ pipeline {
     }
 
     stages {
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    docker.image('ubuntu:latest').inside('-u root') {
+                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git docker.io ansible"
+                    }
+                }
+            }
+        }
+
         stage('Setup Virtual Environment') {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
-                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git"
-                        sh "python3 --version"
                         sh "python3 -m venv ${VENV_DIR}"
                         sh "${VENV_DIR}/bin/pip install --upgrade pip"
                         sh "${VENV_DIR}/bin/pip install -r requirements.txt"
-                        sh "tar -czf venv.tar.gz ${VENV_DIR}" // Archive venv for later use
                     }
                 }
-                stash name: 'venv', includes: 'venv.tar.gz' // Store venv for later stages
+                stash name: 'requirements', includes: 'requirements.txt'
             }
         }
 
@@ -30,12 +37,9 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
-                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git"
-                        unstash 'venv' // Retrieve the venv from the previous stage
-                        sh "tar -xzf venv.tar.gz" // Extract the virtual environment
+                        unstash 'requirements'
+                        sh "${VENV_DIR}/bin/pip install -r requirements.txt"
                         sh "rm -rf build/"
-                        sh "python3 --version"
-                        sh "${VENV_DIR}/bin/pip install --upgrade pip"
                         sh "${VENV_DIR}/bin/pip install -e .[test]"
                         sh "${VENV_DIR}/bin/pytest src/scientific-calculator/test/"
                     }
@@ -47,11 +51,8 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
-                        unstash 'venv'
-                        sh "tar -xzf venv.tar.gz"
-                        sh "python3 --version"
-                        sh "${VENV_DIR}/bin/pip install --upgrade pip"
-                        sh "${VENV_DIR}/bin/pip install -e ."
+                        unstash 'requirements'
+                        sh "${VENV_DIR}/bin/pip install -r requirements.txt"
                         sh "${VENV_DIR}/bin/python setup.py sdist bdist_wheel"
                         archiveArtifacts artifacts: 'dist/*', fingerprint: true
                     }
@@ -63,8 +64,6 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
-                        sh "apt-get update && apt-get install -y docker.io"
-                        sh "docker --version"
                         sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                         withCredentials([
                             usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'REGISTRY_PASSWORD', usernameVariable: 'REGISTRY_USER')
@@ -83,10 +82,8 @@ pipeline {
                 script {
                     withCredentials([
                         usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'DOCKER_REGISTRY_PASSWORD', usernameVariable: 'DOCKER_REGISTRY_USER')
-                    ]){
+                    ]) {
                         docker.image('ubuntu:latest').inside('-u root') {
-                            sh "apt-get update && apt-get install -y ansible"
-                            sh "docker --version"
                             sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${REGISTRY}"
                             sh "ansible-galaxy collection install community.docker"
                             sh "ansible-playbook -i inventory.ini deployment.yml"
