@@ -16,7 +16,7 @@ pipeline {
                     docker.image('python:3.9').inside('-u root') {
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
-                        sh 'pip install -e .[test]'
+                        sh 'pip install -r requirements.txt' // Install from requirements.txt
                         sh 'pytest'
                     }
                 }
@@ -29,7 +29,7 @@ pipeline {
                     docker.image('python:3.9').inside('-u root') {
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
-                        sh 'pip install -e .'
+                        sh 'pip install -r requirements.txt' // Install from requirements.txt
                         sh 'python setup.py sdist bdist_wheel'
                         archiveArtifacts artifacts: 'dist/*', fingerprint: true
                     }
