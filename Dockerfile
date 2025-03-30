@@ -1,30 +1,24 @@
-# Use an official Ubuntu runtime as a parent image
-FROM ubuntu:latest
+# Use an official Python runtime as a parent image
+FROM python:3.9
 
 # Set the working directory
 WORKDIR /app
 
-# Install required packages
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-venv \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the current directory contents into the container
-COPY . /app
+COPY . .
 
-# Set up a virtual environment and install dependencies
-RUN python3 -m venv venv && \
-    ./venv/bin/pip install --upgrade pip && \
-    ./venv/bin/pip install -r requirements.txt && \
-    ./venv/bin/pip install -e .[test]
+# Install the package
+RUN pip install -e .
 
-# Define environment variable
-ENV NAME Scientific_Calculator
-
-# Make port 80 available to the world outside this container
+# Make port 80 available
 EXPOSE 80
 
-# Default command to run the calculator service
-CMD ["./venv/bin/python", "-m", "scientific_calculator.app"]
+# Run the calculator application
+CMD ["python", "-m", "calc"]
