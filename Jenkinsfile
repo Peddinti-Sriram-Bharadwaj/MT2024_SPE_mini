@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
-                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip"
+                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git"
                         sh "python3 -m venv ${VENV_DIR}"
                         sh "${VENV_DIR}/bin/pip install --upgrade pip"
                         sh "${VENV_DIR}/bin/pip install -r requirements.txt"
