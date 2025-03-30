@@ -1,15 +1,14 @@
 ---
-- name: Deploy Scientific Calculator Locally
+- name: Deploy Scientific Calculator
   hosts: local
-  become: false  # No need for sudo on local machine usually
+  become: false
   vars:
-    docker_image_name: sriram9217/scientific-calculator 
-    ansible_python_interpreter: /Library/Frameworks/Python.framework/Versions/3.13/bin/python3
+    docker_image_name: sriram9217/scientific-calculator
     docker_container_name: scientific-calculator
   tasks:
-    - name: Pull Docker image (if needed)
+    - name: Pull Docker image
       community.docker.docker_image:
-        name: "{{ docker_image_name }}:latest" 
+        name: "{{ docker_image_name }}:latest"
         source: pull
         state: present
 
@@ -20,13 +19,13 @@
         state: started
         restart_policy: always
         ports:
-          - "8081:80" 
+          - "8081:80"
 
-    - name: check if container is running
+    - name: Check if container is running
       community.docker.docker_container_info:
         name: "{{ docker_container_name }}"
       register: container_info
 
-    - name: display container info
+    - name: Display container info
       debug:
         var: container_info.container.State.Running
