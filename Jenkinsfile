@@ -14,9 +14,10 @@ pipeline {
             steps {
                 script {
                     docker.image('python:3.9').inside('-u root') {
+                        sh 'source venv/bin/activate'
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
-                        sh 'pip install -r requirements.txt' // Install from requirements.txt
+                        sh 'pip install -e .[test]'
                         sh 'pytest'
                     }
                 }
@@ -29,7 +30,7 @@ pipeline {
                     docker.image('python:3.9').inside('-u root') {
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
-                        sh 'pip install -r requirements.txt' // Install from requirements.txt
+                        sh 'pip install -e .'
                         sh 'python setup.py sdist bdist_wheel'
                         archiveArtifacts artifacts: 'dist/*', fingerprint: true
                     }
@@ -67,6 +68,7 @@ pipeline {
                     ]){
                         sh 'docker --version'
                         sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${REGISTRY}"
+
                         sh 'ansible-galaxy collection install community.docker'
                         sh 'ansible-playbook -i inventory.ini deployment.yml'
                     }
