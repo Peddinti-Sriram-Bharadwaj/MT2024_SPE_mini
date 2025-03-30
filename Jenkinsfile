@@ -4,42 +4,83 @@ pipeline {
     }
     environment {
         REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
-        IMAGE_NAME = "sriram9217/scientific-calculator"
-        IMAGE_TAG = "latest"
-        DOCKER_CREDENTIALS = credentials('docker-hub-user')
+        IMAGE_NAME = "${env.DOCKER_IMAGE_NAME ?: 'sriram9217/scientific-calculator'}"
     }
+
     stages {
-        stage('Setup and Test') {
+        stage('Test') {
             steps {
-                sh 'apt-get update && apt-get install -y python3 python3-venv python3-pip || true'
-                sh 'python3 -m venv venv || true'
-                sh './venv/bin/pip install --upgrade pip || true'
-                sh './venv/bin/pip install -r requirements.txt || true'
-                sh './venv/bin/pip install -e .[test] || true'
-                sh './venv/bin/pytest src/scientific_calculator/test/ || true'
+                script {
+                    docker.image('python:3.9').inside('-u root') {
+                        sh 'python --version'
+                        sh 'pip install --upgrade pip'
+                        sh 'pip install -r requirements.txt'
+                        sh 'pip install -e .[test]'
+                        sh 'pytest'  // Will automatically find tests
+                    }
+                }
             }
         }
-        stage('Build Python Package') {
+
+        stage('Build') {
             steps {
-                sh 'python3 -m venv venv || true'
-                sh './venv/bin/pip install --upgrade pip || true'
-                sh './venv/bin/pip install -r requirements.txt || true'
-                sh './venv/bin/python setup.py sdist bdist_wheel || true'
-                archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                script {
+                    docker.image('python:3.9').inside('-u root') {
+                        sh 'python --version'
+                        sh 'pip install --upgrade pip'
+                        sh 'pip install -r requirements.txt'
+                        sh 'pip install -e .'
+                        sh 'python setup.py sdist bdist_wheel'
+                        archiveArtifacts artifacts: 'dist/*', fingerprint: true
+                    }
+                }
             }
         }
+
         stage('Docker Build and Push') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            environment {
+                IMAGE_TAG = "latest"
+            }
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
-                sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin ${REGISTRY}'
-                sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                script {
+                    docker.image('docker:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock -u root') {
+                        sh 'docker --version'
+                        sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                        withCredentials([
+                           usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'REGISTRY_PASSWORD', usernameVariable: 'REGISTRY_USER')
+                        ]) {
+                            sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}"
+                            sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                        }
+                    }
+                }
             }
         }
+
         stage('Deploy') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
             steps {
-                sh 'apt-get update && apt-get install -y ansible || true'
-                sh 'ansible-galaxy collection install community.docker || true'
-                sh 'ansible-playbook -i inventory.ini deployment.yml'
+                script {
+                    withCredentials([
+                       usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'DOCKER_REGISTRY_PASSWORD', usernameVariable: 'DOCKER_REGISTRY_USER')
+                    ]){
+                        sh 'docker --version'
+                        sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${REGISTRY}"
+                        sh 'ansible-galaxy collection install community.docker'
+                        sh 'ansible-playbook -i inventory.ini deployment.yml'
+                    }
+                }
             }
         }
     }
