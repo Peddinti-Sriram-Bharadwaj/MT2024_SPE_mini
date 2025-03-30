@@ -1,5 +1,6 @@
 import math
 import sys
+import time
 
 def square_root(x):
     if x >= 0:
@@ -33,55 +34,60 @@ def display_menu():
     print("4. Power (x^b)")
     print("5. Exit")
 
-def main():
-    if sys.stdin.isatty():  # Check if running interactively
-        while True:
-            display_menu()
+def interactive_mode():
+    while True:
+        display_menu()
+        try:
+            choice = input("Enter your choice (1-5): ")
+        except EOFError:
+            print("Invalid Input")
+            continue
+        if choice == '1':
             try:
-              choice = input("Enter your choice (1-5): ")
-            except EOFError:
-              print("Invalid Input")
-              continue
-            if choice == '1':
-                try:
-                    x = float(input("Enter the number (x): "))
-                    result = square_root(x)
-                    if result is not None:
-                        print(f"Square root of {x} is: {result}")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-            elif choice == '2':
-                try:
-                    x = int(input("Enter the number (x): "))
-                    result = factorial(x)
-                    if result is not None:
-                        print(f"Factorial of {x} is: {result}")
-                except ValueError:
-                    print("Invalid input. Please enter an integer.")
-            elif choice == '3':
-                try:
-                    x = float(input("Enter the number (x): "))
-                    result = natural_logarithm(x)
-                    if result is not None:
-                        print(f"Natural logarithm of {x} is: {result}")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-            elif choice == '4':
-                try:
-                    x = float(input("Enter the base (x): "))
-                    b = float(input("Enter the exponent (b): "))
-                    result = power(x, b)
-                    print(f"{x} raised to the power of {b} is: {result}")
-                except ValueError:
-                    print("Invalid input. Please enter numbers.")
-            elif choice == '5':
-                print("Exiting the calculator...")
-                break
-            else:
-                print("Invalid choice. Please enter a number between 1 and 5.")
+                x = float(input("Enter the number (x): "))
+                result = square_root(x)
+                if result is not None:
+                    print(f"Square root of {x} is: {result}")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+        elif choice == '2':
+            try:
+                x = int(input("Enter the number (x): "))
+                result = factorial(x)
+                if result is not None:
+                    print(f"Factorial of {x} is: {result}")
+            except ValueError:
+                print("Invalid input. Please enter an integer.")
+        elif choice == '3':
+            try:
+                x = float(input("Enter the number (x): "))
+                result = natural_logarithm(x)
+                if result is not None:
+                    print(f"Natural logarithm of {x} is: {result}")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+        elif choice == '4':
+            try:
+                x = float(input("Enter the base (x): "))
+                b = float(input("Enter the exponent (b): "))
+                result = power(x, b)
+                print(f"{x} raised to the power of {b} is: {result}")
+            except ValueError:
+                print("Invalid input. Please enter numbers.")
+        elif choice == '5':
+            print("Exiting the calculator...")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+def main():
+    if sys.stdin.isatty():
+        print("Running interactively...")
+        interactive_mode()
     else:
         print("Running Non-interactively")
-
+        while True:
+            time.sleep(10)  # Keeps the container running
 
 if __name__ == "__main__":
     main()
