@@ -15,11 +15,14 @@ pipeline {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
                         sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git"
+                        sh "python3 --version"
                         sh "python3 -m venv ${VENV_DIR}"
                         sh "${VENV_DIR}/bin/pip install --upgrade pip"
                         sh "${VENV_DIR}/bin/pip install -r requirements.txt"
+                        sh "tar -czf venv.tar.gz ${VENV_DIR}" // Archive venv for later use
                     }
                 }
+                stash name: 'venv', includes: 'venv.tar.gz' // Store venv for later stages
             }
         }
 
@@ -27,6 +30,9 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
+                        sh "apt-get update && apt-get install -y python3 python3-venv python3-pip git"
+                        unstash 'venv' // Retrieve the venv from the previous stage
+                        sh "tar -xzf venv.tar.gz" // Extract the virtual environment
                         sh "rm -rf build/"
                         sh "python3 --version"
                         sh "${VENV_DIR}/bin/pip install --upgrade pip"
@@ -41,6 +47,8 @@ pipeline {
             steps {
                 script {
                     docker.image('ubuntu:latest').inside('-u root') {
+                        unstash 'venv'
+                        sh "tar -xzf venv.tar.gz"
                         sh "python3 --version"
                         sh "${VENV_DIR}/bin/pip install --upgrade pip"
                         sh "${VENV_DIR}/bin/pip install -e ."
