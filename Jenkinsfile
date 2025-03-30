@@ -14,7 +14,6 @@ pipeline {
             steps {
                 script {
                     docker.image('python:3.9').inside('-u root') {
-                        sh 'source venv/bin/activate'
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
                         sh 'pip install -e .[test]'
@@ -68,7 +67,6 @@ pipeline {
                     ]){
                         sh 'docker --version'
                         sh "docker login -u ${DOCKER_REGISTRY_USER} -p ${DOCKER_REGISTRY_PASSWORD} ${REGISTRY}"
-
                         sh 'ansible-galaxy collection install community.docker'
                         sh 'ansible-playbook -i inventory.ini deployment.yml'
                     }
