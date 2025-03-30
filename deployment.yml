@@ -4,6 +4,7 @@
   become: false  # No need for sudo on local machine usually
   vars:
     docker_image_name: sriram9217/scientific-calculator 
+    ansible_python_interpreter: /Library/Frameworks/Python.framework/Versions/3.13/bin/python3
     docker_container_name: scientific-calculator
   tasks:
     - name: Pull Docker image (if needed)
