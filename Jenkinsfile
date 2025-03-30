@@ -18,7 +18,7 @@ pipeline {
                         sh 'python --version'
                         sh 'pip install --upgrade pip'
                         sh 'pip install -e .[test]'
-                        sh 'pytest --ignore=build/'
+                        sh 'pytest src/scientific-calculator/test/'
                     }
                 }
             }
