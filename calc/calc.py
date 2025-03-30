@@ -27,7 +27,7 @@ def power(x, b):
     return math.pow(x, b)
 
 def display_menu():
-    print("\nScientific Calculator Menu:")
+    print("\nScientific Calculator options:")
     print("1. Square Root (√x)")
     print("2. Factorial (x!)")
     print("3. Natural Logarithm (ln(x))")
